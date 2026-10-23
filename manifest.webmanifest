@@ -1,0 +1,16 @@
+{
+  "name": "Robot rad",
+  "short_name": "Robot rad",
+  "description": "Kako robot radi: stanje sada, komadi danas, dani i smjene.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1220",
+  "theme_color": "#0d1220",
+  "lang": "hr",
+  "icons": [
+    { "src": "ikona-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "ikona-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

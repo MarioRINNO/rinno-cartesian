@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Robot rad</title>
+<meta name="theme-color" content="#0d1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Robot rad">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="ikona-192.png">
+<link rel="apple-touch-icon" href="ikona-192.png">
+<style>
+/* Web aplikacija "Robot rad" (Mario 23.10.2026): sve o radu robota ukratko, na mobitelu.
+   Boje kao na ekranu robota: grafitna podloga, tirkiz = rad, zuto = paznja, crveno = stoji. */
+:root {
+  --bg: #0d1220; --bar: #161e31; --panel: #1b2438; --panel2: #232e45; --line: #33405c;
+  --ink: #eef3fb; --dim: #93a2bf; --key: #2fd4c8; --keybg: #143a40;
+  --go: #4ade80; --gobg: #12341f; --warn: #ffc24b; --warnbg: #3a2a08; --stop: #ff6b5e; --stopbg: #3a1512;
+  --meat: #d4796a;
+  --f: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f); font-size: 15px }
+body { padding: env(safe-area-inset-top, 0) max(14px, env(safe-area-inset-right, 0)) calc(24px + env(safe-area-inset-bottom, 0)) max(14px, env(safe-area-inset-left, 0)) }
+.wrap { max-width: 720px; margin: 0 auto }
+header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 0 10px }
+header h1 { margin: 0; font-size: 20px; letter-spacing: .02em }
+header .azur { font-size: 12px; color: var(--dim); text-align: right }
+button { font: inherit; color: inherit; cursor: pointer }
+.gumb { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px }
+.gumb:active { transform: translateY(1px) }
+.kartica { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; margin-bottom: 12px }
+.kartica h2 { margin: 0 0 10px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); font-weight: 600 }
+.stanje { display: flex; align-items: center; gap: 14px }
+.svjetlo { width: 18px; height: 18px; border-radius: 50%; flex: none; background: var(--dim) }
+.svjetlo.radi { background: var(--go); box-shadow: 0 0 0 6px rgba(74,222,128,.15); animation: puls 1.6s ease-in-out infinite }
+.svjetlo.stoji { background: var(--warn) }
+.svjetlo.ugasen { background: var(--stop) }
+@keyframes puls { 50% { box-shadow: 0 0 0 11px rgba(74,222,128,.05) } }
+@media (prefers-reduced-motion: reduce) { .svjetlo.radi { animation: none } }
+.stanje .veliko { font-size: 26px; font-weight: 700 }
+.stanje .malo { color: var(--dim); font-size: 13px; margin-top: 2px }
+.brojke { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px }
+@media (min-width: 560px) { .brojke { grid-template-columns: repeat(4, minmax(0, 1fr)) } }
+.broj { background: var(--panel2); border-radius: 12px; padding: 10px 12px; min-width: 0 }
+.broj .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums }
+.broj .n { font-size: 12px; color: var(--dim); margin-top: 2px }
+.broj.key .v { color: var(--key) }
+.graf { width: 100%; height: auto; display: block }
+.graf text { fill: var(--dim); font-size: 10px; font-family: var(--f) }
+.kal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px }
+.kal .d { aspect-ratio: 1; border-radius: 6px; background: var(--panel2); display: grid; place-items: center; font-size: 12px; color: var(--dim); position: relative }
+.kal .d.prazno { background: transparent }
+.kal .d.danas { outline: 2px solid var(--key) }
+.kal .dn { font-size: 10px; color: var(--dim); text-align: center }
+.kalvrh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px }
+.kalvrh button { background: none; border: 0; color: var(--key); font-size: 20px; padding: 4px 10px }
+.smjene { width: 100%; border-collapse: collapse; font-size: 13px }
+.smjene th { text-align: left; color: var(--dim); font-weight: 500; font-size: 11px; padding: 4px 6px; border-bottom: 1px solid var(--line) }
+.smjene td { padding: 7px 6px; border-bottom: 1px solid #253049; font-variant-numeric: tabular-nums; vertical-align: top }
+.smjene td.r { text-align: right }
+.razlog { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: var(--panel2); color: var(--dim); white-space: nowrap }
+.razlog.kamera { background: var(--warnbg); color: var(--warn) }
+.razlog.gasenje { background: var(--stopbg); color: var(--stop) }
+.tablica { overflow-x: auto }
+.razlozi { display: flex; flex-wrap: wrap; gap: 8px }
+.prazno-txt { color: var(--dim); font-size: 14px; line-height: 1.5 }
+/* PIN */
+.pin { min-height: 80vh; display: grid; place-items: center; text-align: center }
+.pin h1 { font-size: 24px; margin: 0 0 6px }
+.pin p { color: var(--dim); margin: 0 0 18px }
+.pin input { font: inherit; font-size: 30px; letter-spacing: .4em; text-align: center; width: 220px; padding: 12px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink) }
+.pin input:focus { outline: 2px solid var(--key) }
+.pin .gumb { margin-top: 14px; width: 220px; background: var(--keybg); border-color: var(--key); color: var(--key); font-weight: 600 }
+.greska { color: var(--stop); min-height: 20px; margin-top: 10px; font-size: 14px }
+.ikonica { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 14px }
+.dno { text-align: center; color: var(--dim); font-size: 12px; margin-top: 16px }
+.dno button { background: none; border: 0; color: var(--dim); text-decoration: underline; padding: 6px }
+[hidden] { display: none !important }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section class="pin" id="ekran-pin">
+  <div>
+    <img class="ikonica" src="ikona-192.png" alt="">
+    <h1>Robot rad</h1>
+    <p>Upiši PIN da vidiš kako robot radi.</p>
+    <form id="pin-forma" autocomplete="off">
+      <input id="pin" inputmode="numeric" pattern="[0-9]*" maxlength="12" aria-label="PIN" autofocus>
+      <br><button class="gumb" type="submit">Otvori</button>
+      <div class="greska" id="pin-greska"></div>
+    </form>
+  </div>
+</section>
+
+<main id="ekran-rad" hidden>
+  <header>
+    <h1>Robot rad</h1>
+    <div class="azur" id="azurirano">—</div>
+  </header>
+
+  <section class="kartica">
+    <div class="stanje">
+      <div class="svjetlo" id="svjetlo"></div>
+      <div>
+        <div class="veliko" id="stanje-veliko">—</div>
+        <div class="malo" id="stanje-malo"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="kartica">
+    <h2>Danas</h2>
+    <div class="brojke">
+      <div class="broj key"><div class="v" id="d-plitice">0</div><div class="n">komada u plitice</div></div>
+      <div class="broj"><div class="v" id="d-strane">0</div><div class="n">sa strane</div></div>
+      <div class="broj"><div class="v" id="d-sati">0</div><div class="n">sati rada</div></div>
+      <div class="broj"><div class="v" id="d-ritam">0</div><div class="n">komada na sat</div></div>
+    </div>
+  </section>
+
+  <section class="kartica">
+    <h2>Zadnjih 14 dana · komada u plitice</h2>
+    <svg class="graf" id="graf" viewBox="0 0 340 150" role="img" aria-label="Komada po danu"></svg>
+  </section>
+
+  <section class="kartica">
+    <div class="kalvrh">
+      <button type="button" id="kal-pret" aria-label="Prethodni mjesec">‹</button>
+      <h2 id="kal-naslov" style="margin:0">—</h2>
+      <button type="button" id="kal-sljed" aria-label="Sljedeći mjesec">›</button>
+    </div>
+    <div class="kal" id="kal"></div>
+  </section>
+
+  <section class="kartica">
+    <h2>Ovaj mjesec</h2>
+    <div class="brojke">
+      <div class="broj key"><div class="v" id="m-plitice">0</div><div class="n">komada u plitice</div></div>
+      <div class="broj"><div class="v" id="m-strane">0</div><div class="n">sa strane</div></div>
+      <div class="broj"><div class="v" id="m-sati">0</div><div class="n">sati rada</div></div>
+      <div class="broj"><div class="v" id="m-dana">0</div><div class="n">dana rada</div></div>
+    </div>
+  </section>
+
+  <section class="kartica">
+    <h2>Zašto je stajao (zadnjih 30 dana)</h2>
+    <div class="razlozi" id="razlozi"></div>
+  </section>
+
+  <section class="kartica">
+    <h2>Smjene</h2>
+    <div class="tablica">
+      <table class="smjene">
+        <thead><tr><th>Dan</th><th>Od – do</th><th>Posao</th><th class="r">Plitice</th><th class="r">Strana</th><th>Stao</th></tr></thead>
+        <tbody id="smjene"></tbody>
+      </table>
+    </div>
+    <p class="prazno-txt" id="smjene-prazno" hidden>Još nema nijedne smjene. Prva će se pojaviti kad robot radi pa stisneš STOP.</p>
+  </section>
+
+  <div class="dno">
+    Osvježava se sam svake minute · <button type="button" id="odjava">zaključaj</button>
+  </div>
+</main>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const DANI = ["ned", "pon", "uto", "sri", "čet", "pet", "sub"];
+  const MJ = ["siječanj", "veljača", "ožujak", "travanj", "svibanj", "lipanj", "srpanj", "kolovoz", "rujan", "listopad", "studeni", "prosinac"];
+  let PIN = null, PODACI = null, kalMj = null;
+
+  const spremi = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+  const procitaj = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+
+  // ---- otkljucavanje: isto sto RPI5 zakljuca (openssl enc -aes-256-cbc -pbkdf2 -iter 100000 -md sha256) ----
+  async function otkljucaj(b64, pin) {
+    const raw = Uint8Array.from(atob(b64.trim()), c => c.charCodeAt(0));
+    if (new TextDecoder().decode(raw.slice(0, 8)) !== "Salted__") throw new Error("los zapis");
+    const salt = raw.slice(8, 16), ct = raw.slice(16);
+    const km = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveBits"]);
+    const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, km, 384));
+    const key = await crypto.subtle.importKey("raw", bits.slice(0, 32), "AES-CBC", false, ["decrypt"]);
+    const pt = await crypto.subtle.decrypt({ name: "AES-CBC", iv: bits.slice(32, 48) }, key, ct);
+    return JSON.parse(new TextDecoder().decode(pt));
+  }
+  async function dohvati() {
+    const r = await fetch("podaci.enc?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("nema podataka (" + r.status + ")");
+    return r.text();
+  }
+
+  // ---- racun ----
+  const dan = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  function smjene(p) {
+    return (p.zapisi || []).map(z => {
+      const kraj = new Date(z.vrijeme), poc = new Date(kraj.getTime() - (z.s || 0) * 1000);
+      return { ...z, poc, kraj, dan: dan(poc) };
+    }).sort((a, b) => b.kraj - a.kraj);
+  }
+  function zbroj(lista) {
+    const s = { plitice: 0, strane: 0, sek: 0, n: 0, dani: new Set() };
+    lista.forEach(z => { s.plitice += z.plitice || 0; s.strane += z.strane || 0; s.sek += z.s || 0; s.n++; s.dani.add(z.dan); });
+    return s;
+  }
+  const sati = sek => (sek / 3600).toFixed(sek >= 36000 ? 0 : 1).replace(".", ",");
+  const hm = d => d.toLocaleTimeString("hr-HR", { hour: "2-digit", minute: "2-digit" });
+  const prije = ms => { const m = Math.round(ms / 60000); return m < 1 ? "upravo" : m < 60 ? "prije " + m + " min" : m < 1440 ? "prije " + Math.round(m / 60) + " h" : "prije " + Math.round(m / 1440) + " dana"; };
+
+  // ---- crtanje ----
+  function crtaj() {
+    const p = PODACI; if (!p) return;
+    const sad = new Date(), danas = dan(sad), sve = smjene(p);
+    $("azurirano").textContent = p.azurirano ? "podaci " + prije(sad - new Date(p.azurirano)) : "";
+
+    // stanje sada
+    const st = p.stanje, sv = $("svjetlo");
+    const staro = st ? sad - new Date(st.vrijeme) : Infinity;
+    if (!st || staro > 4 * 60000) {
+      sv.className = "svjetlo ugasen";
+      $("stanje-veliko").textContent = "Ugašen ili bez veze";
+      $("stanje-malo").textContent = st ? "zadnji put se javio " + prije(staro) + (st.proizvod ? " · " + st.proizvod : "") : "robot se još nije javio";
+    } else if (st.radi) {
+      sv.className = "svjetlo radi";
+      $("stanje-veliko").textContent = "RADI";
+      $("stanje-malo").textContent = (st.proizvod || "") + " · " + Math.round((st.s || 0) / 60) + " min · " + (st.plitice || 0) + " u plitice" +
+        (st.strane ? " · " + st.strane + " sa strane" : "") + " · plitice " + (st.puno || 0) + "/" + (st.mjesta || 0) + " pune";
+    } else {
+      sv.className = "svjetlo stoji";
+      $("stanje-veliko").textContent = "Upaljen, stoji";
+      $("stanje-malo").textContent = (st.proizvod || "") + (sve[0] ? " · zadnja smjena završila " + prije(sad - sve[0].kraj) : "");
+    }
+    // danas (uz smjenu koja upravo traje)
+    const d = zbroj(sve.filter(z => z.dan === danas));
+    if (st && st.radi && staro < 4 * 60000) { d.plitice += st.plitice || 0; d.strane += st.strane || 0; d.sek += st.s || 0; }
+    $("d-plitice").textContent = d.plitice; $("d-strane").textContent = d.strane;
+    $("d-sati").textContent = sati(d.sek); $("d-ritam").textContent = d.sek > 300 ? Math.round(d.plitice / (d.sek / 3600)) : "–";
+
+    // 14 dana
+    const g = $("graf"); g.innerHTML = "";
+    const dani = []; for (let i = 13; i >= 0; i--) { const x = new Date(sad); x.setDate(x.getDate() - i); dani.push(x); }
+    const vr = dani.map(x => zbroj(sve.filter(z => z.dan === dan(x))).plitice);
+    if (st && st.radi && staro < 4 * 60000) vr[13] += st.plitice || 0;
+    const mx = Math.max(10, ...vr), W = 340, H = 150, L = 4, B = 118, bw = (W - L * 2) / 14;
+    const ns = "http://www.w3.org/2000/svg", el = (t, a) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); g.appendChild(e); return e; };
+    el("line", { x1: L, x2: W - L, y1: B, y2: B, stroke: "#33405c" });
+    vr.forEach((v, i) => {
+      const h = v ? Math.max(3, (B - 18) * v / mx) : 0, x = L + i * bw + 3, w = bw - 6;
+      if (h) el("rect", { x, y: B - h, width: w, height: h, rx: 4, fill: i === 13 ? "#2fd4c8" : "#2a8f88" });
+      if (v) { const t = el("text", { x: x + w / 2, y: B - h - 4, "text-anchor": "middle" }); t.textContent = v; }
+      const t2 = el("text", { x: x + w / 2, y: B + 14, "text-anchor": "middle" }); t2.textContent = dani[i].getDate() + ".";
+      const t3 = el("text", { x: x + w / 2, y: B + 26, "text-anchor": "middle" }); t3.textContent = DANI[dani[i].getDay()];
+    });
+
+    // kalendar
+    if (!kalMj) kalMj = new Date(sad.getFullYear(), sad.getMonth(), 1);
+    $("kal-naslov").textContent = MJ[kalMj.getMonth()] + " " + kalMj.getFullYear();
+    const k = $("kal"); k.textContent = "";
+    ["pon", "uto", "sri", "čet", "pet", "sub", "ned"].forEach(n => { const e = document.createElement("div"); e.className = "dn"; e.textContent = n; k.appendChild(e); });
+    const prvi = (kalMj.getDay() + 6) % 7, uMj = new Date(kalMj.getFullYear(), kalMj.getMonth() + 1, 0).getDate();
+    const mjSve = sve.filter(z => z.poc.getFullYear() === kalMj.getFullYear() && z.poc.getMonth() === kalMj.getMonth());
+    const poDanu = {}; mjSve.forEach(z => poDanu[z.dan] = (poDanu[z.dan] || 0) + (z.plitice || 0));
+    const mxd = Math.max(1, ...Object.values(poDanu));
+    for (let i = 0; i < prvi; i++) { const e = document.createElement("div"); e.className = "d prazno"; k.appendChild(e); }
+    for (let i = 1; i <= uMj; i++) {
+      const x = new Date(kalMj.getFullYear(), kalMj.getMonth(), i), key = dan(x), v = poDanu[key] || 0;
+      const e = document.createElement("div"); e.className = "d" + (key === danas ? " danas" : "");
+      if (v) { const a = .25 + .75 * v / mxd; e.style.background = `rgba(47,212,200,${a.toFixed(2)})`; e.style.color = a > .6 ? "#0d1220" : "#eef3fb"; e.title = v + " komada"; }
+      e.textContent = i; k.appendChild(e);
+    }
+    const m = zbroj(mjSve);
+    $("m-plitice").textContent = m.plitice; $("m-strane").textContent = m.strane; $("m-sati").textContent = sati(m.sek); $("m-dana").textContent = m.dani.size;
+
+    // razlozi zaustavljanja
+    const od30 = new Date(sad); od30.setDate(od30.getDate() - 30);
+    const rz = {}; sve.filter(z => z.kraj > od30).forEach(z => rz[z.razlog || "STOP"] = (rz[z.razlog || "STOP"] || 0) + 1);
+    const r = $("razlozi"); r.textContent = "";
+    const opis = { "STOP": "STOP na ekranu", "RAZVOJ": "otišao u razvoj", "kamera utihnula": "kamera utihnula", "program ugasen": "program ugašen" };
+    const kl = { "kamera utihnula": "kamera", "program ugasen": "gasenje" };
+    if (!Object.keys(rz).length) r.innerHTML = '<span class="prazno-txt">Nema smjena u zadnjih 30 dana.</span>';
+    Object.entries(rz).sort((a, b) => b[1] - a[1]).forEach(([k2, v]) => {
+      const s = document.createElement("span"); s.className = "razlog " + (kl[k2] || ""); s.style.fontSize = "13px"; s.style.padding = "5px 10px";
+      s.textContent = (opis[k2] || k2) + ": " + v + "×"; r.appendChild(s);
+    });
+
+    // smjene
+    const tb = $("smjene"); tb.textContent = "";
+    $("smjene-prazno").hidden = sve.length > 0;
+    sve.slice(0, 60).forEach(z => {
+      const tr = document.createElement("tr");
+      const c = (t, cls) => { const td = document.createElement("td"); if (cls) td.className = cls; td.textContent = t; tr.appendChild(td); return td; };
+      c(z.poc.getDate() + "." + (z.poc.getMonth() + 1) + ". " + DANI[z.poc.getDay()]);
+      c(hm(z.poc) + "–" + hm(z.kraj) + " (" + Math.round((z.s || 0) / 60) + " min)");
+      c((z.proizvod || "").replace("PRSUT", "PRŠUT"));
+      c(String(z.plitice || 0), "r"); c(String(z.strane || 0), "r");
+      const td = c(""); const s = document.createElement("span"); s.className = "razlog " + (kl[z.razlog] || ""); s.textContent = opis[z.razlog] || z.razlog || "STOP"; td.appendChild(s);
+      tb.appendChild(tr);
+    });
+  }
+
+  async function osvjezi(tiho) {
+    try {
+      PODACI = await otkljucaj(await dohvati(), PIN);
+      crtaj();
+      return true;
+    } catch (e) {
+      if (!tiho) throw e;
+      return false;
+    }
+  }
+  async function otvori(pin) {
+    PIN = pin;
+    try { await osvjezi(false); }
+    catch (e) {
+      PIN = null; spremi("robot-rad-pin", null);
+      $("pin-greska").textContent = String(e.message || "").startsWith("nema podataka") ? "Podaci još nisu stigli s robota. Pokušaj malo kasnije." : "Krivi PIN.";
+      return;
+    }
+    spremi("robot-rad-pin", pin);
+    $("ekran-pin").hidden = true; $("ekran-rad").hidden = false;
+  }
+  $("pin-forma").addEventListener("submit", e => { e.preventDefault(); $("pin-greska").textContent = "Otključavam…"; otvori($("pin").value.trim()); });
+  $("odjava").onclick = () => { spremi("robot-rad-pin", null); location.reload(); };
+  $("kal-pret").onclick = () => { kalMj = new Date(kalMj.getFullYear(), kalMj.getMonth() - 1, 1); crtaj(); };
+  $("kal-sljed").onclick = () => { kalMj = new Date(kalMj.getFullYear(), kalMj.getMonth() + 1, 1); crtaj(); };
+  setInterval(() => { if (PIN) osvjezi(true); }, 60000);
+  setInterval(() => { if (PODACI) crtaj(); }, 20000);           // "prije X min" ide dalje i bez novih podataka
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && PIN) osvjezi(true); });
+  const zap = procitaj("robot-rad-pin"); if (zap) otvori(zap);
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+})();
+</script>
+</body>
+</html>
