@@ -1,8 +1,7 @@
-# Rinno Cartesiran
+# RINNO Cartesian
 
-Web aplikacija: kako radi robot (pršut / buđola) – stanje sada, komadi danas, zadnjih 14 dana, kalendar i smjene.
+Web aplikacija: kako radi robot - stanje sada, komadi danas, zadnjih 14 dana, kalendar i smjene.
 
-Otvori na mobitelu: https://mariorinno.github.io/robot-rad/ → upiši PIN → u izborniku preglednika „Dodaj na početni zaslon“.
+Otvori na mobitelu: https://mariorinno.github.io/rinno-cartesian/ -> upisi PIN -> u izborniku preglednika "Dodaj na pocetni zaslon".
 
-Podaci (`podaci.enc`) šalje RPI5 robota i **zaključani su PIN-om** (AES-256); bez PIN-a se ne mogu pročitati.
-Izvor aplikacije je u privatnom repozitoriju robota (`web/robot-rad`), ovdje se samo objavljuje.
+Podatke (`podaci.enc`) salje RPI5 robota i zakljucani su PIN-om (AES-256); bez PIN-a se ne mogu procitati.
