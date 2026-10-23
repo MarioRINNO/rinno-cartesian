@@ -1,6 +1,6 @@
-// Web aplikacija "Robot rad": stranica se sprema na mobitel da se otvara odmah i bez signala;
+// Web aplikacija "Rinno Cartesiran": stranica se sprema na mobitel da se otvara odmah i bez signala;
 // podaci (podaci.enc) se UVIJEK traze svjezi, a stari se pokazu samo kad nema interneta.
-const VERZIJA = "robot-rad-1";
+const VERZIJA = "robot-rad-2";
 const LJUSKA = ["./", "index.html", "manifest.webmanifest", "ikona-192.png", "ikona-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(VERZIJA).then(c => c.addAll(LJUSKA))); self.skipWaiting(); });
 self.addEventListener("activate", e => {

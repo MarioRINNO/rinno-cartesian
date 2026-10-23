@@ -1,4 +1,4 @@
-# Robot rad
+# Rinno Cartesiran
 
 Web aplikacija: kako radi robot (pršut / buđola) – stanje sada, komadi danas, zadnjih 14 dana, kalendar i smjene.
 
