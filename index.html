@@ -83,6 +83,12 @@ button { font: inherit; color: inherit; cursor: pointer }
 .radnje .tk.kreni { background: var(--go) } .radnje .tk.stop, .radnje .tk.ugasen { background: var(--stop) }
 .radnje .tk.prazno, .radnje .tk.kamera { background: var(--warn) }
 .radnje .op { min-width: 0 } .radnje .op small { display: block; color: var(--dim); font-size: 11px }
+.minute { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 420px; overflow-y: auto }
+.minute li { display: grid; grid-template-columns: 92px 10px minmax(0, 1fr); gap: 8px; align-items: start; padding: 6px 2px; border-bottom: 1px solid #253049; font-size: 13px }
+.minute .t { color: var(--dim); font-variant-numeric: tabular-nums }
+.minute .tk { width: 9px; height: 9px; border-radius: 50%; margin-top: 4px; background: var(--line) }
+.minute .tk.radi { background: var(--go) } .minute .tk.stoji { background: var(--warn) } .minute .tk.nema { background: var(--stop) }
+.minute b { color: var(--key); font-weight: 600 }
 /* PIN */
 .pin { min-height: 80vh; display: grid; place-items: center; text-align: center }
 .pin h1 { font-size: 24px; margin: 0 0 6px }
@@ -128,6 +134,11 @@ button { font: inherit; color: inherit; cursor: pointer }
         <div class="malo" id="stanje-malo"></div>
       </div>
     </div>
+  </section>
+
+  <section class="kartica">
+    <h2>Po minutama · zadnji sat</h2>
+    <ul class="minute" id="minute"></ul>
   </section>
 
   <section class="kartica">
@@ -191,7 +202,7 @@ button { font: inherit; color: inherit; cursor: pointer }
   </section>
 
   <div class="dno">
-    Osvježava se sam svake minute · <button type="button" id="odjava">zaključaj</button>
+    Robot javlja svaku minutu, stranica kasni 1–2 min · <button type="button" id="odjava">zaključaj</button>
   </div>
 </main>
 </div>
@@ -256,13 +267,25 @@ button { font: inherit; color: inherit; cursor: pointer }
     const sad = new Date(), danas = dan(sad), sve = smjene(p);
     $("azurirano").textContent = p.azurirano ? "podaci " + prije(sad - new Date(p.azurirano)) : "";
 
-    // stanje sada
+    // stanje sada. RPI5 salje SVAKU MINUTU i bez novosti (23.10.2026) - pa se razlikuje:
+    // nema veze sa strojem (RPI5 šuti) / robot ugasen (RPI5 se javlja, robot ne) / robot upaljen
     const st = p.stanje, sv = $("svjetlo");
     const staro = st ? sad - new Date(st.vrijeme) : Infinity;
-    if (!st || staro > 4 * 60000) {
+    const rp5 = p.azurirano ? sad - new Date(p.azurirano) : Infinity;
+    const kam = p.rpi5 ? (p.rpi5.vizija ? " · kamera radi" : " · kamera NE RADI") : "";
+    const gdje = st && st.gdje || "rad";
+    if (rp5 > 4 * 60000) {
       sv.className = "svjetlo ugasen";
-      $("stanje-veliko").textContent = "Ugašen ili bez veze";
-      $("stanje-malo").textContent = st ? "zadnji put se javio " + prije(staro) + (st.proizvod ? " · " + st.proizvod : "") : "robot se još nije javio";
+      $("stanje-veliko").textContent = "Nema veze sa strojem";
+      $("stanje-malo").textContent = "stroj se nije javio " + prije(rp5) + " · nema struje ili interneta";
+    } else if (!st || staro > 3 * 60000 || gdje === "ugasen") {
+      sv.className = "svjetlo ugasen";
+      $("stanje-veliko").textContent = "Robot ugašen";
+      $("stanje-malo").textContent = (st ? "zadnji put se javio " + prije(staro) : "robot se još nije javio") + kam;
+    } else if (gdje !== "rad" && !st.radi) {
+      sv.className = "svjetlo stoji";
+      $("stanje-veliko").textContent = { izbornik: "Upaljen · u izborniku", razvoj: "Upaljen · u razvoju", zamjena: "Zamjena alata" }[gdje] || "Upaljen";
+      $("stanje-malo").textContent = (st.proizvod ? lijepo(st.proizvod) : "bira se posao") + kam;
     } else if (st.radi) {
       sv.className = "svjetlo radi";
       $("stanje-veliko").textContent = "RADI";
@@ -271,8 +294,35 @@ button { font: inherit; color: inherit; cursor: pointer }
     } else {
       sv.className = "svjetlo stoji";
       $("stanje-veliko").textContent = "Upaljen, stoji";
-      $("stanje-malo").textContent = (st.proizvod || "") + (sve[0] ? " · zadnja smjena završila " + prije(sad - sve[0].kraj) : "");
+      $("stanje-malo").textContent = lijepo(st.proizvod) + " · čeka KRENI" + (sve[0] ? " · zadnja smjena završila " + prije(sad - sve[0].kraj) : "") + kam;
     }
+    // po minutama, zadnji sat: isto stanje zaredom ide u jedan red, minuta s komadima uvijek svoj
+    const mk = d2 => dan(d2) + "T" + String(d2.getHours()).padStart(2, "0") + ":" + String(d2.getMinutes()).padStart(2, "0");
+    const pm = {}; (p.minute || []).forEach(x => pm[x.m] = x);
+    const redovi = [];
+    for (let i = 0; i < 60; i++) {
+      const t = new Date(sad.getTime() - i * 60000), x = pm[mk(t)], n = x && x.n || {};
+      let opis, kl;
+      if (!x && i === 0) continue;   // tekuca minuta jos nije stigla
+      if (!x) { opis = "robot se nije javio"; kl = "nema"; }
+      else if (x.radi) { opis = "RADI"; kl = "radi"; }
+      else { opis = { izbornik: "u izborniku", razvoj: "u razvoju", zamjena: "zamjena alata", ugasen: "robot ugašen" }[x.gdje] || "stoji, čeka KRENI"; kl = x.gdje === "ugasen" ? "nema" : "stoji"; }
+      const br = [["komad", "u plitice"], ["strana", "sa strane"], ["prazno", "prazno"], ["kamera", "kamera promašila"], ["kalibracija", "kalibracija"]]
+        .filter(([k3]) => n[k3]).map(([k3, ime]) => "<b>" + n[k3] + "</b> " + ime);
+      const posao = x && x.posao ? lijepo(x.posao) : "";
+      const zadnji = redovi[redovi.length - 1];
+      if (!br.length && zadnji && !zadnji.br.length && zadnji.opis === opis && zadnji.posao === posao) { zadnji.od = t; continue; }
+      redovi.push({ do_: t, od: t, opis, kl, br, posao });
+    }
+    const um = $("minute"); um.textContent = "";
+    redovi.forEach(r3 => {
+      const li = document.createElement("li");
+      const a = document.createElement("span"); a.className = "t"; a.textContent = r3.od === r3.do_ ? hm(r3.do_) : hm(r3.od) + "–" + hm(r3.do_);
+      const b = document.createElement("span"); b.className = "tk " + r3.kl;
+      const c = document.createElement("span"); c.className = "op"; c.innerHTML = [r3.opis].concat(r3.br).join(" · ");
+      if (r3.posao) { const sm = document.createElement("small"); sm.style.cssText = "display:block;color:var(--dim);font-size:11px"; sm.textContent = r3.posao; c.appendChild(sm); }
+      li.append(a, b, c); um.appendChild(li);
+    });
     // danas (uz smjenu koja upravo traje); komadi iz svake radnje kad postoje - tako su svi poslovi i svaki komad
     const d = zbroj(sve.filter(z => z.dan === danas));
     if (st && st.radi && staro < 4 * 60000) { d.plitice += st.plitice || 0; d.strane += st.strane || 0; d.sek += st.s || 0; }
@@ -406,7 +456,7 @@ button { font: inherit; color: inherit; cursor: pointer }
   $("odjava").onclick = () => { spremi("robot-rad-pin", null); location.reload(); };
   $("kal-pret").onclick = () => { kalMj = new Date(kalMj.getFullYear(), kalMj.getMonth() - 1, 1); crtaj(); };
   $("kal-sljed").onclick = () => { kalMj = new Date(kalMj.getFullYear(), kalMj.getMonth() + 1, 1); crtaj(); };
-  setInterval(() => { if (PIN) osvjezi(true); }, 60000);
+  setInterval(() => { if (PIN) osvjezi(true); }, 30000);
   setInterval(() => { if (PODACI) crtaj(); }, 20000);           // "prije X min" ide dalje i bez novih podataka
   document.addEventListener("visibilitychange", () => { if (!document.hidden && PIN) osvjezi(true); });
   const zap = procitaj("robot-rad-pin"); if (zap) otvori(zap);
