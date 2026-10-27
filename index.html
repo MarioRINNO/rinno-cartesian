@@ -50,6 +50,13 @@ button { font: inherit; color: inherit; cursor: pointer }
 .broj .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums }
 .broj .n { font-size: 12px; color: var(--dim); margin-top: 2px }
 .broj.key .v { color: var(--key) }
+/* danas: jedna velika brojka (kg u plitice), ispod sitnije (Mario 27.10.2026) */
+.glavno { font-size: 54px; font-weight: 700; color: var(--key); line-height: 1; font-variant-numeric: tabular-nums }
+.glavno small { font-size: 16px; font-weight: 500; color: var(--dim) }
+.sitno { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line) }
+.sitno b { display: block; font-size: 19px; font-variant-numeric: tabular-nums }
+.sitno span { font-size: 11px; color: var(--dim) }
+.sitno b.lose { color: var(--warn) }
 .graf { width: 100%; height: auto; display: block }
 .graf text { fill: var(--dim); font-size: 10px; font-family: var(--f) }
 .kal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px }
@@ -151,20 +158,15 @@ button { font: inherit; color: inherit; cursor: pointer }
 
   <section class="kartica">
     <h2>Danas</h2>
-    <div class="brojke">
-      <div class="broj key"><div class="v" id="d-kg">0</div><div class="n">kg u plitice</div></div>
-      <div class="broj"><div class="v" id="d-kom">0</div><div class="n">komada u plitice</div></div>
-      <div class="broj"><div class="v" id="d-sati">0</div><div class="n">sati rada</div></div>
-      <div class="broj"><div class="v" id="d-ritam">–</div><div class="n">kg na sat (prosjek)</div></div>
+    <div class="glavno"><span id="d-kg">0</span> <small>kg u plitice</small></div>
+    <div class="sitno">
+      <div><b id="d-kom">0</b><span>komada</span></div>
+      <div><b id="d-sati">0</b><span>sati rada</span></div>
+      <div><b id="d-ritam">–</b><span>kg na sat</span></div>
+      <div><b id="d-strana">–</b><span>sa strane</span></div>
     </div>
     <div class="mesa" id="d-mesa" style="margin-top:12px"></div>
     <div class="ukupno" id="d-ukupno"></div>
-  </section>
-
-  <section class="kartica">
-    <h2>Zadnje radnje</h2>
-    <ul class="radnje zatv" id="radnje"></ul>
-    <button type="button" class="gumb vise" id="radnje-gumb">Prikaži više ▾</button>
   </section>
 
   <section class="kartica">
@@ -206,6 +208,12 @@ button { font: inherit; color: inherit; cursor: pointer }
       </table>
     </div>
     <p class="prazno-txt" id="smjene-prazno" hidden>Još ništa. Pojavit će se kad robot radi pa stisneš STOP.</p>
+  </section>
+
+  <section class="kartica">
+    <h2>Zadnje radnje</h2>
+    <ul class="radnje zatv" id="radnje"></ul>
+    <button type="button" class="gumb vise" id="radnje-gumb">Prikaži više ▾</button>
   </section>
 
   <div class="dno">
@@ -313,9 +321,10 @@ button { font: inherit; color: inherit; cursor: pointer }
       (x.sek ? " · " + sati(x.sek) + " h rada" : "") + (x.poc ? " · " + hm(x.poc) + "–" + hm(x.kraj) : ""),
       x.kg, naSat(x.kg, x.sek) + " kg/h")));
   }
+  const posto = z => z.komad + z.strana ? Math.round(100 * z.strana / (z.komad + z.strana)) + " %" : "–";
   function ukupnoTxt(z) {
     return "Ukupno obrađeno <b>" + (z.komad + z.strana) + "</b> kom · spremljeno u plitice <b>" + z.komad + "</b> kom (<b>" + kgT(z.kg) + "</b> kg)" +
-      (z.strana ? " · sa strane <b>" + z.strana + "</b>" : "");
+      (z.strana ? " · sa strane <b>" + z.strana + "</b> (" + posto(z) + ")" : "");
   }
   function danDetalj(el, key, zatvori) {
     el.hidden = !key; if (!key) return;
@@ -375,6 +384,7 @@ button { font: inherit; color: inherit; cursor: pointer }
     const dl = danMesa(danas), dz = zbrojMesa(dl);
     $("d-kg").textContent = kgT(dz.kg); $("d-kom").textContent = dz.komad;
     $("d-sati").textContent = sati(dz.sek); $("d-ritam").textContent = naSat(dz.kg, dz.sek);
+    $("d-strana").textContent = posto(dz); $("d-strana").className = dz.strana / (dz.komad + dz.strana) > .1 ? "lose" : "";
     danRedovi($("d-mesa"), dl);
     if (!dl.length) $("d-mesa").innerHTML = '<span class="prazno-txt">Danas robot još nije radio.</span>';
     $("d-ukupno").innerHTML = dl.length ? ukupnoTxt(dz) : "";
