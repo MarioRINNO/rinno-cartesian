@@ -62,20 +62,38 @@ button { font: inherit; color: inherit; cursor: pointer }
 .smjene { width: 100%; border-collapse: collapse; font-size: 13px }
 .smjene th { text-align: left; color: var(--dim); font-weight: 500; font-size: 11px; padding: 4px 6px; border-bottom: 1px solid var(--line) }
 .smjene td { padding: 7px 6px; border-bottom: 1px solid #253049; font-variant-numeric: tabular-nums; vertical-align: top }
-.smjene td.r { text-align: right }
-.razlog { font-size: 11px; padding: 2px 7px; border-radius: 99px; background: var(--panel2); color: var(--dim); white-space: nowrap }
-.razlog.kamera { background: var(--warnbg); color: var(--warn) }
-.razlog.gasenje { background: var(--stopbg); color: var(--stop) }
+.smjene td.r, .smjene th.r { text-align: right }
+.smjene .tc { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px }
+.smjene td small { display: block; color: var(--dim); font-size: 11px }
 .tablica { overflow-x: auto }
-.razlozi { display: flex; flex-wrap: wrap; gap: 8px }
 .prazno-txt { color: var(--dim); font-size: 14px; line-height: 1.5 }
-.poslovi { display: grid; gap: 8px }
-.posao { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: baseline; background: var(--panel2); border-radius: 10px; padding: 9px 12px }
-.posao .ime { font-weight: 600 }
-.posao .k { font-variant-numeric: tabular-nums; text-align: right }
-.posao .k b { font-size: 18px; color: var(--key) }
-.posao .k span { display: block; font-size: 11px; color: var(--dim) }
-.radnje { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 520px; overflow-y: auto }
+/* jedno meso u jednom redu: boja mesa, ime + LOT, sitno sto i koliko, desno kilogrami */
+.mesa { display: grid; gap: 8px }
+.meso { display: grid; grid-template-columns: 6px minmax(0, 1fr) auto; gap: 12px; align-items: center; background: var(--panel2); border-radius: 10px; padding: 10px 12px }
+.meso .bj { width: 6px; align-self: stretch; border-radius: 3px }
+.meso .ime { font-weight: 600 }
+.meso .ime small { display: block; font-weight: 400; font-size: 12px; color: var(--dim); margin-top: 3px; line-height: 1.45 }
+.lot { display: inline-block; font-size: 11px; padding: 1px 8px; border-radius: 99px; background: var(--keybg); color: var(--key); margin-left: 6px; font-weight: 600; vertical-align: 1px }
+.lot.nema { background: var(--panel); color: var(--dim); font-weight: 400 }
+.meso .kg { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap }
+.meso .kg b { font-size: 20px }
+.meso .kg span { display: block; font-size: 11px; color: var(--dim) }
+.ukupno { margin-top: 10px; font-size: 13px; color: var(--dim) }
+.ukupno b { color: var(--ink) }
+.legenda { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 12px; color: var(--dim) }
+.legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px }
+.uputa { font-size: 12px; color: var(--dim); margin-top: 6px }
+/* klik na dan: podaci tog dana se otvore odmah ispod, na istom mjestu */
+.dandet { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px }
+.dandet h3 { margin: 0 0 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: center }
+.dandet h3 button { background: none; border: 0; color: var(--dim); font-size: 13px; padding: 4px 6px }
+.graf .dan { cursor: pointer }
+.kal .d { cursor: pointer }
+.kal .d.odabran { outline: 2px solid var(--ink); outline-offset: -2px }
+/* zadnje radnje: zatvorene ne hvataju prst (stranica ide dolje), otvorene se listaju same za sebe */
+.radnje { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.radnje.zatv { max-height: 200px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 60%, transparent); mask-image: linear-gradient(#000 60%, transparent); cursor: pointer }
+.radnje.otv { max-height: 65vh; overflow-y: auto; overscroll-behavior: contain }
 .radnje li { display: grid; grid-template-columns: 52px 10px minmax(0, 1fr); gap: 8px; align-items: start; padding: 6px 2px; border-bottom: 1px solid #253049; font-size: 13px }
 .radnje .t { color: var(--dim); font-variant-numeric: tabular-nums }
 .radnje .tk { width: 9px; height: 9px; border-radius: 50%; margin-top: 4px; background: var(--dim) }
@@ -83,12 +101,7 @@ button { font: inherit; color: inherit; cursor: pointer }
 .radnje .tk.kreni { background: var(--go) } .radnje .tk.stop, .radnje .tk.ugasen { background: var(--stop) }
 .radnje .tk.prazno, .radnje .tk.kamera { background: var(--warn) }
 .radnje .op { min-width: 0 } .radnje .op small { display: block; color: var(--dim); font-size: 11px }
-.minute { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 420px; overflow-y: auto }
-.minute li { display: grid; grid-template-columns: 92px 10px minmax(0, 1fr); gap: 8px; align-items: start; padding: 6px 2px; border-bottom: 1px solid #253049; font-size: 13px }
-.minute .t { color: var(--dim); font-variant-numeric: tabular-nums }
-.minute .tk { width: 9px; height: 9px; border-radius: 50%; margin-top: 4px; background: var(--line) }
-.minute .tk.radi { background: var(--go) } .minute .tk.stoji { background: var(--warn) } .minute .tk.nema { background: var(--stop) }
-.minute b { color: var(--key); font-weight: 600 }
+.vise { width: 100%; margin-top: 8px; color: var(--key) }
 /* PIN */
 .pin { min-height: 80vh; display: grid; place-items: center; text-align: center }
 .pin h1 { font-size: 24px; margin: 0 0 6px }
@@ -137,33 +150,29 @@ button { font: inherit; color: inherit; cursor: pointer }
   </section>
 
   <section class="kartica">
-    <h2>Po minutama · zadnji sat</h2>
-    <ul class="minute" id="minute"></ul>
-  </section>
-
-  <section class="kartica">
     <h2>Danas</h2>
     <div class="brojke">
-      <div class="broj key"><div class="v" id="d-plitice">0</div><div class="n">komada u plitice</div></div>
-      <div class="broj"><div class="v" id="d-strane">0</div><div class="n">sa strane</div></div>
+      <div class="broj key"><div class="v" id="d-kg">0</div><div class="n">kg u plitice</div></div>
+      <div class="broj"><div class="v" id="d-kom">0</div><div class="n">komada u plitice</div></div>
       <div class="broj"><div class="v" id="d-sati">0</div><div class="n">sati rada</div></div>
-      <div class="broj"><div class="v" id="d-ritam">0</div><div class="n">komada na sat</div></div>
+      <div class="broj"><div class="v" id="d-ritam">–</div><div class="n">kg na sat (prosjek)</div></div>
     </div>
-  </section>
-
-  <section class="kartica">
-    <h2>Danas po mesu</h2>
-    <div class="poslovi" id="poslovi"></div>
+    <div class="mesa" id="d-mesa" style="margin-top:12px"></div>
+    <div class="ukupno" id="d-ukupno"></div>
   </section>
 
   <section class="kartica">
     <h2>Zadnje radnje</h2>
-    <ul class="radnje" id="radnje"></ul>
+    <ul class="radnje zatv" id="radnje"></ul>
+    <button type="button" class="gumb vise" id="radnje-gumb">Prikaži više ▾</button>
   </section>
 
   <section class="kartica">
-    <h2>Zadnjih 14 dana · komada u plitice</h2>
-    <svg class="graf" id="graf" viewBox="0 0 340 150" role="img" aria-label="Komada po danu"></svg>
+    <h2>Zadnjih 14 dana · kg u plitice</h2>
+    <svg class="graf" id="graf" viewBox="0 0 340 150" role="img" aria-label="Kilograma po danu"></svg>
+    <div class="legenda" id="graf-leg"></div>
+    <div class="uputa">Dodirni dan da vidiš što se radilo.</div>
+    <div class="dandet" id="graf-dan" hidden></div>
   </section>
 
   <section class="kartica">
@@ -173,32 +182,30 @@ button { font: inherit; color: inherit; cursor: pointer }
       <button type="button" id="kal-sljed" aria-label="Sljedeći mjesec">›</button>
     </div>
     <div class="kal" id="kal"></div>
+    <div class="legenda" id="kal-leg"></div>
+    <div class="dandet" id="kal-dan" hidden></div>
   </section>
 
   <section class="kartica">
-    <h2>Ovaj mjesec</h2>
+    <h2 id="m-naslov">Ovaj mjesec</h2>
     <div class="brojke">
-      <div class="broj key"><div class="v" id="m-plitice">0</div><div class="n">komada u plitice</div></div>
-      <div class="broj"><div class="v" id="m-strane">0</div><div class="n">sa strane</div></div>
+      <div class="broj key"><div class="v" id="m-kg">0</div><div class="n">kg u plitice</div></div>
+      <div class="broj"><div class="v" id="m-kom">0</div><div class="n">komada u plitice</div></div>
       <div class="broj"><div class="v" id="m-sati">0</div><div class="n">sati rada</div></div>
       <div class="broj"><div class="v" id="m-dana">0</div><div class="n">dana rada</div></div>
     </div>
+    <div class="mesa" id="m-mesa" style="margin-top:12px"></div>
   </section>
 
   <section class="kartica">
-    <h2>Zašto je stajao (zadnjih 30 dana)</h2>
-    <div class="razlozi" id="razlozi"></div>
-  </section>
-
-  <section class="kartica">
-    <h2>Smjene</h2>
+    <h2>Što se kada radilo</h2>
     <div class="tablica">
       <table class="smjene">
-        <thead><tr><th>Dan</th><th>Od – do</th><th>Posao</th><th class="r">Plitice</th><th class="r">Strana</th><th>Stao</th></tr></thead>
+        <thead><tr><th>Dan</th><th>Od – do</th><th>Meso</th><th class="r">U plitice</th><th class="r">kg</th></tr></thead>
         <tbody id="smjene"></tbody>
       </table>
     </div>
-    <p class="prazno-txt" id="smjene-prazno" hidden>Još nema nijedne smjene. Prva će se pojaviti kad robot radi pa stisneš STOP.</p>
+    <p class="prazno-txt" id="smjene-prazno" hidden>Još ništa. Pojavit će se kad robot radi pa stisneš STOP.</p>
   </section>
 
   <div class="dno">
@@ -237,12 +244,19 @@ button { font: inherit; color: inherit; cursor: pointer }
   // ---- imena poslova: robot pise bez kvacica (PRSUT, BUDJOLA), izbornik "gr", program "g" ----
   const lijepo = t => String(t || "?").toUpperCase().replace(/PRSUT/g, "PRŠUT").replace(/BUDJOLA/g, "BUĐOLA")
     .replace(/PECENICA/g, "PEČENICA").replace(/SUNKA/g, "ŠUNKA").replace(/\s+GR\b/g, " g").replace(/\s+G\b/g, " g").trim();
-  // koliko je cega bilo na dan, zbrojeno preko svih poslova (iz RPI5 zbroja svake radnje)
-  function danZbroj(p, key, vrsta) {
-    const d = (p.dani || {})[key]; if (!d) return 0;
-    return Object.values(d).reduce((a, v) => a + (v[vrsta] || 0), 0);
+  // meso (Mario 27.10.2026): svako meso svoja boja; kilogrami = komada x gramaza iz imena posla (robot ne vaze)
+  const BOJE = { "PRŠUT": "#2fd4c8", "BUĐOLA": "#d4796a", "PEČENICA": "#ffc24b", "PANCETA": "#b48cf2", "ŠUNKA": "#6aa8ff" };
+  const vrsta = ime => ime.split(/[\s/]/)[0];
+  const boja = ime => BOJE[vrsta(ime)] || "#93a2bf";
+  const gram = ime => { const m = /(\d+)\s*g$/.exec(ime); return m ? +m[1] : 0; };
+  const nijeMeso = ime => !ime || ime === "?" || ime === "ZAMJENA ALATA";
+  const kgT = v => v.toLocaleString("hr-HR", { maximumFractionDigits: v < 100 ? 1 : 0 });
+  const rgba = (hex, a) => "rgba(" + [1, 3, 5].map(i => parseInt(hex.substr(i, 2), 16)).join(",") + "," + a.toFixed(2) + ")";
+  // LOT se upisuje na RPI5 (lotovi.json): dan -> meso ("PRŠUT") ili meso s gramazom ("PRŠUT 500 g") -> LOT
+  function lot(key, ime) {
+    const L = {}; Object.entries((PODACI.lotovi || {})[key] || {}).forEach(([k, v]) => L[lijepo(k)] = v);
+    return L[ime] || L[vrsta(ime)] || "";
   }
-  const imaDane = p => p.dani && Object.keys(p.dani).length > 0;
 
   // ---- racun ----
   const dan = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
@@ -252,16 +266,75 @@ button { font: inherit; color: inherit; cursor: pointer }
       return { ...z, poc, kraj, dan: dan(poc) };
     }).sort((a, b) => b.kraj - a.kraj);
   }
-  function zbroj(lista) {
-    const s = { plitice: 0, strane: 0, sek: 0, n: 0, dani: new Set() };
-    lista.forEach(z => { s.plitice += z.plitice || 0; s.strane += z.strane || 0; s.sek += z.s || 0; s.n++; s.dani.add(z.dan); });
-    return s;
-  }
   const sati = sek => (sek / 3600).toFixed(sek >= 36000 ? 0 : 1).replace(".", ",");
   const hm = d => d.toLocaleTimeString("hr-HR", { hour: "2-digit", minute: "2-digit" });
   const prije = ms => { const m = Math.round(ms / 60000); return m < 1 ? "upravo" : m < 60 ? "prije " + m + " min" : m < 1440 ? "prije " + Math.round(m / 60) + " h" : "prije " + Math.round(m / 1440) + " dana"; };
+  const DANI_PUNO = ["nedjelja", "ponedjeljak", "utorak", "srijeda", "četvrtak", "petak", "subota"];
+  const datum = key => { const x = new Date(key + "T12:00:00"); return DANI_PUNO[x.getDay()] + " " + x.getDate() + "." + (x.getMonth() + 1) + "." + x.getFullYear() + "."; };
+
+  // sve o jednom danu, po mesu: komadi iz svake radnje (RPI5 zbroj), sati i od-do iz smjena (+ smjena koja upravo traje)
+  let SVE = [], ZIVO = null;
+  function danMesa(key) {
+    const o = {}, dd = (PODACI.dani || {})[key];
+    const daj = ime => o[ime] || (o[ime] = { ime, komad: 0, strana: 0, sek: 0, poc: null, kraj: null });
+    const vrijeme = (x, poc, kraj) => { if (!x.poc || poc < x.poc) x.poc = poc; if (!x.kraj || kraj > x.kraj) x.kraj = kraj; };
+    if (dd) Object.entries(dd).forEach(([ime, v]) => { const n = lijepo(ime);
+      if (!nijeMeso(n) && (v.komad || v.strana)) { const x = daj(n); x.komad += v.komad || 0; x.strana += v.strana || 0; } });
+    SVE.filter(z => z.dan === key).forEach(z => { const n = lijepo(z.proizvod); if (nijeMeso(n)) return;
+      const x = daj(n); x.sek += z.s || 0; vrijeme(x, z.poc, z.kraj);
+      if (!dd) { x.komad += z.plitice || 0; x.strana += z.strane || 0; } });
+    if (ZIVO && key === dan(new Date())) { const n = lijepo(ZIVO.proizvod);
+      if (!nijeMeso(n)) { const x = daj(n), sad = new Date(); x.sek += ZIVO.s || 0; vrijeme(x, new Date(sad - (ZIVO.s || 0) * 1000), sad);
+        if (!dd) { x.komad += ZIVO.plitice || 0; x.strana += ZIVO.strane || 0; } } }
+    return Object.values(o).filter(x => x.komad || x.strana || x.sek >= 60)
+      .map(x => ({ ...x, kg: x.komad * gram(x.ime) / 1000, lot: lot(key, x.ime) }))
+      .sort((a, b) => b.kg - a.kg || b.komad - a.komad);
+  }
+  const zbrojMesa = l => l.reduce((s, x) => ({ kg: s.kg + x.kg, komad: s.komad + x.komad, strana: s.strana + x.strana, sek: s.sek + x.sek }), { kg: 0, komad: 0, strana: 0, sek: 0 });
+  const naSat = (kg, sek) => sek >= 300 && kg ? kgT(kg / (sek / 3600)) : "–";
 
   // ---- crtanje ----
+  function mesoRed(ime, lotovi, sitno, kg, ispod) {
+    const r = document.createElement("div"); r.className = "meso";
+    const bj = document.createElement("div"); bj.className = "bj"; bj.style.background = boja(ime);
+    const a = document.createElement("div"); a.className = "ime"; a.textContent = ime;
+    const l = lotovi.filter(Boolean);
+    const lt = document.createElement("span"); lt.className = "lot" + (l.length ? "" : " nema"); lt.textContent = l.length ? "LOT " + l.join(", ") : "bez LOT-a"; a.appendChild(lt);
+    const sm = document.createElement("small"); sm.textContent = sitno; a.appendChild(sm);
+    const b = document.createElement("div"); b.className = "kg";
+    const bb = document.createElement("b"); bb.textContent = gram(ime) ? kgT(kg) + " kg" : "–"; b.appendChild(bb);
+    const sp = document.createElement("span"); sp.textContent = ispod; b.appendChild(sp);
+    r.append(bj, a, b); return r;
+  }
+  function danRedovi(el, l) {
+    el.textContent = "";
+    l.forEach(x => el.appendChild(mesoRed(x.ime, [x.lot],
+      x.komad + " kom u plitice" + (x.strana ? " · " + x.strana + " sa strane" : "") +
+      (x.sek ? " · " + sati(x.sek) + " h rada" : "") + (x.poc ? " · " + hm(x.poc) + "–" + hm(x.kraj) : ""),
+      x.kg, naSat(x.kg, x.sek) + " kg/h")));
+  }
+  function ukupnoTxt(z) {
+    return "Ukupno obrađeno <b>" + (z.komad + z.strana) + "</b> kom · spremljeno u plitice <b>" + z.komad + "</b> kom (<b>" + kgT(z.kg) + "</b> kg)" +
+      (z.strana ? " · sa strane <b>" + z.strana + "</b>" : "");
+  }
+  function danDetalj(el, key, zatvori) {
+    el.hidden = !key; if (!key) return;
+    el.textContent = "";
+    const h = document.createElement("h3"); h.textContent = datum(key);
+    const x = document.createElement("button"); x.type = "button"; x.textContent = "zatvori ✕"; x.onclick = zatvori; h.appendChild(x);
+    el.appendChild(h);
+    const l = danMesa(key);
+    if (!l.length) { const p = document.createElement("div"); p.className = "prazno-txt"; p.textContent = "Taj dan robot nije radio."; el.appendChild(p); return; }
+    const m = document.createElement("div"); m.className = "mesa"; danRedovi(m, l); el.appendChild(m);
+    const z = zbrojMesa(l), u = document.createElement("div"); u.className = "ukupno";
+    u.innerHTML = ukupnoTxt(z) + " · " + sati(z.sek) + " h rada · prosjek " + naSat(z.kg, z.sek) + " kg/h"; el.appendChild(u);
+  }
+  function legenda(el, imena) {
+    el.textContent = "";
+    [...new Set(imena.map(vrsta))].forEach(v => { const s = document.createElement("span"); s.innerHTML = "<i></i>"; s.firstChild.style.background = boja(v); s.append(v); el.appendChild(s); });
+  }
+
+  let odabran14 = null, odabranKal = null, radnjeOtv = false;
   function crtaj() {
     const p = PODACI; if (!p) return;
     const sad = new Date(), danas = dan(sad), sve = smjene(p);
@@ -296,103 +369,22 @@ button { font: inherit; color: inherit; cursor: pointer }
       $("stanje-veliko").textContent = "Upaljen, stoji";
       $("stanje-malo").textContent = lijepo(st.proizvod) + " · čeka KRENI" + (sve[0] ? " · zadnja smjena završila " + prije(sad - sve[0].kraj) : "") + kam;
     }
-    // po minutama, zadnji sat: isto stanje zaredom ide u jedan red, minuta s komadima uvijek svoj
-    const mk = d2 => dan(d2) + "T" + String(d2.getHours()).padStart(2, "0") + ":" + String(d2.getMinutes()).padStart(2, "0");
-    const pm = {}; (p.minute || []).forEach(x => pm[x.m] = x);
-    const redovi = [];
-    for (let i = 0; i < 60; i++) {
-      const t = new Date(sad.getTime() - i * 60000), x = pm[mk(t)], n = x && x.n || {};
-      let opis, kl;
-      if (!x && i === 0) continue;   // tekuca minuta jos nije stigla
-      if (!x) { opis = "robot se nije javio"; kl = "nema"; }
-      else if (x.radi) { opis = "RADI"; kl = "radi"; }
-      else { opis = { izbornik: "u izborniku", razvoj: "u razvoju", zamjena: "zamjena alata", ugasen: "robot ugašen" }[x.gdje] || "stoji, čeka KRENI"; kl = x.gdje === "ugasen" ? "nema" : "stoji"; }
-      const br = [["komad", "u plitice"], ["strana", "sa strane"], ["prazno", "prazno"], ["kamera", "kamera promašila"], ["kalibracija", "kalibracija"]]
-        .filter(([k3]) => n[k3]).map(([k3, ime]) => "<b>" + n[k3] + "</b> " + ime);
-      const posao = x && x.posao ? lijepo(x.posao) : "";
-      const zadnji = redovi[redovi.length - 1];
-      if (!br.length && zadnji && !zadnji.br.length && zadnji.opis === opis && zadnji.posao === posao) { zadnji.od = t; continue; }
-      redovi.push({ do_: t, od: t, opis, kl, br, posao });
-    }
-    const um = $("minute"); um.textContent = "";
-    redovi.forEach(r3 => {
-      const li = document.createElement("li");
-      const a = document.createElement("span"); a.className = "t"; a.textContent = r3.od === r3.do_ ? hm(r3.do_) : hm(r3.od) + "–" + hm(r3.do_);
-      const b = document.createElement("span"); b.className = "tk " + r3.kl;
-      const c = document.createElement("span"); c.className = "op"; c.innerHTML = [r3.opis].concat(r3.br).join(" · ");
-      if (r3.posao) { const sm = document.createElement("small"); sm.style.cssText = "display:block;color:var(--dim);font-size:11px"; sm.textContent = r3.posao; c.appendChild(sm); }
-      li.append(a, b, c); um.appendChild(li);
-    });
-    // danas (uz smjenu koja upravo traje); komadi iz svake radnje kad postoje - tako su svi poslovi i svaki komad
-    const d = zbroj(sve.filter(z => z.dan === danas));
-    if (st && st.radi && staro < 4 * 60000) { d.plitice += st.plitice || 0; d.strane += st.strane || 0; d.sek += st.s || 0; }
-    if (imaDane(p)) { d.plitice = danZbroj(p, danas, "komad"); d.strane = danZbroj(p, danas, "strana"); }
-    $("d-plitice").textContent = d.plitice; $("d-strane").textContent = d.strane;
-    $("d-sati").textContent = sati(d.sek); $("d-ritam").textContent = d.sek > 300 ? Math.round(d.plitice / (d.sek / 3600)) : "–";
+    SVE = sve; ZIVO = st && st.radi && staro < 4 * 60000 ? st : null;
 
-    // 14 dana
-    const g = $("graf"); g.innerHTML = "";
-    const dani = []; for (let i = 13; i >= 0; i--) { const x = new Date(sad); x.setDate(x.getDate() - i); dani.push(x); }
-    let vr = dani.map(x => zbroj(sve.filter(z => z.dan === dan(x))).plitice);
-    if (st && st.radi && staro < 4 * 60000) vr[13] += st.plitice || 0;
-    if (imaDane(p)) vr = dani.map(x => danZbroj(p, dan(x), "komad"));
-    const mx = Math.max(10, ...vr), W = 340, H = 150, L = 4, B = 118, bw = (W - L * 2) / 14;
-    const ns = "http://www.w3.org/2000/svg", el = (t, a) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); g.appendChild(e); return e; };
-    el("line", { x1: L, x2: W - L, y1: B, y2: B, stroke: "#33405c" });
-    vr.forEach((v, i) => {
-      const h = v ? Math.max(3, (B - 18) * v / mx) : 0, x = L + i * bw + 3, w = bw - 6;
-      if (h) el("rect", { x, y: B - h, width: w, height: h, rx: 4, fill: i === 13 ? "#2fd4c8" : "#2a8f88" });
-      if (v) { const t = el("text", { x: x + w / 2, y: B - h - 4, "text-anchor": "middle" }); t.textContent = v; }
-      const t2 = el("text", { x: x + w / 2, y: B + 14, "text-anchor": "middle" }); t2.textContent = dani[i].getDate() + ".";
-      const t3 = el("text", { x: x + w / 2, y: B + 26, "text-anchor": "middle" }); t3.textContent = DANI[dani[i].getDay()];
-    });
+    // danas: sve zajedno + po mesu
+    const dl = danMesa(danas), dz = zbrojMesa(dl);
+    $("d-kg").textContent = kgT(dz.kg); $("d-kom").textContent = dz.komad;
+    $("d-sati").textContent = sati(dz.sek); $("d-ritam").textContent = naSat(dz.kg, dz.sek);
+    danRedovi($("d-mesa"), dl);
+    if (!dl.length) $("d-mesa").innerHTML = '<span class="prazno-txt">Danas robot još nije radio.</span>';
+    $("d-ukupno").innerHTML = dl.length ? ukupnoTxt(dz) : "";
 
-    // kalendar
-    if (!kalMj) kalMj = new Date(sad.getFullYear(), sad.getMonth(), 1);
-    $("kal-naslov").textContent = MJ[kalMj.getMonth()] + " " + kalMj.getFullYear();
-    const k = $("kal"); k.textContent = "";
-    ["pon", "uto", "sri", "čet", "pet", "sub", "ned"].forEach(n => { const e = document.createElement("div"); e.className = "dn"; e.textContent = n; k.appendChild(e); });
-    const prvi = (kalMj.getDay() + 6) % 7, uMj = new Date(kalMj.getFullYear(), kalMj.getMonth() + 1, 0).getDate();
-    const mjSve = sve.filter(z => z.poc.getFullYear() === kalMj.getFullYear() && z.poc.getMonth() === kalMj.getMonth());
-    const poDanu = {}; mjSve.forEach(z => poDanu[z.dan] = (poDanu[z.dan] || 0) + (z.plitice || 0));
-    if (imaDane(p)) { for (const k3 in poDanu) delete poDanu[k3];
-      Object.keys(p.dani).forEach(k3 => { const x = new Date(k3 + "T12:00:00"); if (x.getFullYear() === kalMj.getFullYear() && x.getMonth() === kalMj.getMonth()) poDanu[k3] = danZbroj(p, k3, "komad"); }); }
-    const mxd = Math.max(1, ...Object.values(poDanu));
-    for (let i = 0; i < prvi; i++) { const e = document.createElement("div"); e.className = "d prazno"; k.appendChild(e); }
-    for (let i = 1; i <= uMj; i++) {
-      const x = new Date(kalMj.getFullYear(), kalMj.getMonth(), i), key = dan(x), v = poDanu[key] || 0;
-      const e = document.createElement("div"); e.className = "d" + (key === danas ? " danas" : "");
-      if (v) { const a = .25 + .75 * v / mxd; e.style.background = `rgba(47,212,200,${a.toFixed(2)})`; e.style.color = a > .6 ? "#0d1220" : "#eef3fb"; e.title = v + " komada"; }
-      e.textContent = i; k.appendChild(e);
-    }
-    const m = zbroj(mjSve);
-    if (imaDane(p)) { m.plitice = 0; m.strane = 0;
-      Object.keys(p.dani).forEach(k3 => { const x = new Date(k3 + "T12:00:00"); if (x.getFullYear() === kalMj.getFullYear() && x.getMonth() === kalMj.getMonth()) {
-        m.plitice += danZbroj(p, k3, "komad"); m.strane += danZbroj(p, k3, "strana"); if (danZbroj(p, k3, "komad")) m.dani.add(k3); } }); }
-    $("m-plitice").textContent = m.plitice; $("m-strane").textContent = m.strane; $("m-sati").textContent = sati(m.sek); $("m-dana").textContent = m.dani.size;
-
-    // danas po mesu (poslu)
-    const po = $("poslovi"); po.textContent = "";
-    const dd = (p.dani || {})[danas] || {};
-    const spoj = {};
-    Object.entries(dd).forEach(([ime, v]) => { const k3 = lijepo(ime); if (k3 === "ZAMJENA ALATA") return;
-      const o = spoj[k3] || (spoj[k3] = { komad: 0, strana: 0, prazno: 0, kamera: 0 });
-      ["komad", "strana", "prazno", "kamera"].forEach(x => o[x] += v[x] || 0); });
-    const imena = Object.keys(spoj).filter(k3 => spoj[k3].komad || spoj[k3].strana || spoj[k3].prazno || spoj[k3].kamera);
-    if (!imena.length) po.innerHTML = '<span class="prazno-txt">Danas još nema nijednog komada.</span>';
-    imena.sort((a, b) => spoj[b].komad - spoj[a].komad).forEach(k3 => {
-      const o = spoj[k3], r2 = document.createElement("div"); r2.className = "posao";
-      const a = document.createElement("div"); a.className = "ime"; a.textContent = k3;
-      const sm = document.createElement("div"); sm.style.cssText = "font-size:11px;color:var(--dim);font-weight:400";
-      sm.textContent = [o.prazno ? o.prazno + "× prazno" : "", o.kamera ? o.kamera + "× kamera promašila" : ""].filter(Boolean).join(" · ");
-      a.appendChild(sm);
-      const b1 = document.createElement("div"); b1.className = "k"; b1.innerHTML = "<b></b><span>u plitice</span>"; b1.firstChild.textContent = o.komad;
-      const b2 = document.createElement("div"); b2.className = "k"; b2.innerHTML = "<b></b><span>sa strane</span>"; b2.firstChild.textContent = o.strana;
-      r2.append(a, b1, b2); po.appendChild(r2);
-    });
-    // zadnje radnje (najnovije gore)
-    const ul = $("radnje"); ul.textContent = "";
+    // zadnje radnje (najnovije gore); zatvorene ne smetaju listanju stranice
+    const ul = $("radnje"), vrh = ul.scrollTop; ul.textContent = "";
+    ul.className = "radnje " + (radnjeOtv ? "otv" : "zatv");
+    $("radnje-gumb").textContent = radnjeOtv ? "Zatvori ▴" : "Prikaži više ▾";
     const dog = (p.dogadaji || []).slice(-150).reverse();
+    $("radnje-gumb").hidden = dog.length <= 5;
     if (!dog.length) ul.innerHTML = '<li style="display:block" class="prazno-txt">Još nema nijedne radnje. Pojavit će se čim robot nešto napravi.</li>';
     dog.forEach(x => {
       const li = document.createElement("li"), t = new Date(x.vrijeme);
@@ -403,30 +395,80 @@ button { font: inherit; color: inherit; cursor: pointer }
       const sm = document.createElement("small"); sm.textContent = lijepo(x.posao); c.appendChild(sm);
       li.append(a, b, c); ul.appendChild(li);
     });
+    if (radnjeOtv) ul.scrollTop = vrh;
 
-    // razlozi zaustavljanja
-    const od30 = new Date(sad); od30.setDate(od30.getDate() - 30);
-    const rz = {}; sve.filter(z => z.kraj > od30).forEach(z => rz[z.razlog || "STOP"] = (rz[z.razlog || "STOP"] || 0) + 1);
-    const r = $("razlozi"); r.textContent = "";
-    const opis = { "STOP": "STOP na ekranu", "RAZVOJ": "otišao u razvoj", "kamera utihnula": "kamera utihnula", "program ugasen": "program ugašen" };
-    const kl = { "kamera utihnula": "kamera", "program ugasen": "gasenje" };
-    if (!Object.keys(rz).length) r.innerHTML = '<span class="prazno-txt">Nema smjena u zadnjih 30 dana.</span>';
-    Object.entries(rz).sort((a, b) => b[1] - a[1]).forEach(([k2, v]) => {
-      const s = document.createElement("span"); s.className = "razlog " + (kl[k2] || ""); s.style.fontSize = "13px"; s.style.padding = "5px 10px";
-      s.textContent = (opis[k2] || k2) + ": " + v + "×"; r.appendChild(s);
+    // 14 dana: stupac po danu, svako meso svoja boja, gore ukupno kg; dodir otvori dan
+    const g = $("graf"); g.innerHTML = "";
+    const dani = []; for (let i = 13; i >= 0; i--) { const x = new Date(sad); x.setDate(x.getDate() - i); dani.push(dan(x)); }
+    const mesa14 = dani.map(danMesa), vr = mesa14.map(l => zbrojMesa(l).kg);
+    const mx = Math.max(10, ...vr), W = 340, H = 150, L = 4, B = 118, bw = (W - L * 2) / 14;
+    const ns = "http://www.w3.org/2000/svg", el = (t, a, u) => { const e = document.createElementNS(ns, t); for (const k in a) e.setAttribute(k, a[k]); (u || g).appendChild(e); return e; };
+    el("line", { x1: L, x2: W - L, y1: B, y2: B, stroke: "#33405c" });
+    dani.forEach((key, i) => {
+      const x = L + i * bw + 3, w = bw - 6, gr = el("g", { class: "dan" });
+      el("rect", { x: x - 2, y: 0, width: w + 4, height: H, rx: 6, fill: key === odabran14 ? "#33405c" : "transparent" }, gr);
+      let y = B;
+      mesa14[i].forEach(m => { if (!m.kg) return; const h = Math.max(2, (B - 18) * m.kg / mx); y -= h; el("rect", { x, y, width: w, height: h, fill: boja(m.ime) }, gr); });
+      if (vr[i]) { const t = el("text", { x: x + w / 2, y: y - 4, "text-anchor": "middle" }, gr); t.textContent = Math.round(vr[i]); }
+      const d = new Date(key + "T12:00:00");
+      const t2 = el("text", { x: x + w / 2, y: B + 14, "text-anchor": "middle" }, gr); t2.textContent = d.getDate() + ".";
+      const t3 = el("text", { x: x + w / 2, y: B + 26, "text-anchor": "middle" }, gr); t3.textContent = DANI[d.getDay()];
+      gr.addEventListener("click", () => { odabran14 = odabran14 === key ? null : key; crtaj(); });
     });
+    legenda($("graf-leg"), mesa14.flat().filter(m => m.kg).map(m => m.ime));
+    danDetalj($("graf-dan"), odabran14, () => { odabran14 = null; crtaj(); });
 
-    // smjene
+    // kalendar: dan obojan bojom mesa koje se najvise radilo, jace = vise kg; dodir otvori dan
+    if (!kalMj) kalMj = new Date(sad.getFullYear(), sad.getMonth(), 1);
+    const mjIme = MJ[kalMj.getMonth()] + " " + kalMj.getFullYear();
+    $("kal-naslov").textContent = mjIme;
+    const k = $("kal"); k.textContent = "";
+    ["pon", "uto", "sri", "čet", "pet", "sub", "ned"].forEach(n => { const e = document.createElement("div"); e.className = "dn"; e.textContent = n; k.appendChild(e); });
+    const prvi = (kalMj.getDay() + 6) % 7, uMj = new Date(kalMj.getFullYear(), kalMj.getMonth() + 1, 0).getDate();
+    const mjDani = [];
+    for (let i = 1; i <= uMj; i++) { const key = dan(new Date(kalMj.getFullYear(), kalMj.getMonth(), i)); mjDani.push({ key, l: danMesa(key) }); }
+    const mxd = Math.max(1, ...mjDani.map(x => zbrojMesa(x.l).kg));
+    for (let i = 0; i < prvi; i++) { const e = document.createElement("div"); e.className = "d prazno"; k.appendChild(e); }
+    mjDani.forEach(({ key, l }, i) => {
+      const e = document.createElement("div"); e.className = "d" + (key === danas ? " danas" : "") + (key === odabranKal ? " odabran" : "");
+      const z = zbrojMesa(l);
+      if (l.length) { const a = .3 + .7 * z.kg / mxd; e.style.background = rgba(boja(l[0].ime), a); e.style.color = a > .6 ? "#0d1220" : "#eef3fb"; }
+      e.textContent = i + 1;
+      e.onclick = () => { odabranKal = odabranKal === key ? null : key; crtaj(); };
+      k.appendChild(e);
+    });
+    legenda($("kal-leg"), mjDani.flatMap(x => x.l.map(m => m.ime)));
+    danDetalj($("kal-dan"), odabranKal, () => { odabranKal = null; crtaj(); });
+
+    // mjesec (onaj iz kalendara): ukupno + po mesu s LOT-ovima
+    $("m-naslov").textContent = "Ukupno · " + mjIme;
+    const pm = {};
+    mjDani.forEach(({ key, l }) => l.forEach(x => {
+      const o = pm[x.ime] || (pm[x.ime] = { ime: x.ime, kg: 0, komad: 0, strana: 0, sek: 0, dani: new Set(), lot: new Set() });
+      o.kg += x.kg; o.komad += x.komad; o.strana += x.strana; o.sek += x.sek; o.dani.add(key); if (x.lot) o.lot.add(x.lot);
+    }));
+    const ml = Object.values(pm).sort((a, b) => b.kg - a.kg || b.komad - a.komad), mz = zbrojMesa(ml);
+    $("m-kg").textContent = kgT(mz.kg); $("m-kom").textContent = mz.komad; $("m-sati").textContent = sati(mz.sek);
+    $("m-dana").textContent = mjDani.filter(x => x.l.length).length;
+    const mm = $("m-mesa"); mm.textContent = "";
+    if (!ml.length) mm.innerHTML = '<span class="prazno-txt">Ovaj mjesec robot nije radio.</span>';
+    ml.forEach(o => mm.appendChild(mesoRed(o.ime, [...o.lot],
+      o.komad + " kom u plitice" + (o.strana ? " · " + o.strana + " sa strane" : "") + " · " + o.dani.size + (o.dani.size === 1 ? " dan" : " dana") + " · " + sati(o.sek) + " h rada",
+      o.kg, naSat(o.kg, o.sek) + " kg/h")));
+
+    // sto se kada radilo
     const tb = $("smjene"); tb.textContent = "";
-    $("smjene-prazno").hidden = sve.length > 0;
-    sve.slice(0, 60).forEach(z => {
-      const tr = document.createElement("tr");
+    const rad = sve.filter(z => z.plitice || z.strane);   // kratka pustanja bez ijednog komada se ne pokazuju
+    $("smjene-prazno").hidden = rad.length > 0;
+    rad.slice(0, 60).forEach(z => {
+      const tr = document.createElement("tr"), ime = lijepo(z.proizvod);
       const c = (t, cls) => { const td = document.createElement("td"); if (cls) td.className = cls; td.textContent = t; tr.appendChild(td); return td; };
       c(z.poc.getDate() + "." + (z.poc.getMonth() + 1) + ". " + DANI[z.poc.getDay()]);
       c(hm(z.poc) + "–" + hm(z.kraj) + " (" + Math.round((z.s || 0) / 60) + " min)");
-      c(lijepo(z.proizvod));
-      c(String(z.plitice || 0), "r"); c(String(z.strane || 0), "r");
-      const td = c(""); const s = document.createElement("span"); s.className = "razlog " + (kl[z.razlog] || ""); s.textContent = opis[z.razlog] || z.razlog || "STOP"; td.appendChild(s);
+      const td = c(""); const tc = document.createElement("span"); tc.className = "tc"; tc.style.background = boja(ime); td.append(tc, ime);
+      const lt = lot(z.dan, ime); if (lt) { const sm = document.createElement("small"); sm.textContent = "LOT " + lt; td.appendChild(sm); }
+      c(String(z.plitice || 0), "r");
+      c(gram(ime) ? kgT((z.plitice || 0) * gram(ime) / 1000) : "–", "r");
       tb.appendChild(tr);
     });
   }
@@ -455,6 +497,9 @@ button { font: inherit; color: inherit; cursor: pointer }
   $("pin-forma").addEventListener("submit", e => { e.preventDefault(); $("pin-greska").textContent = "Otključavam…"; otvori($("pin").value.trim()); });
   $("odjava").onclick = () => { spremi("robot-rad-pin", null); location.reload(); };
   $("kal-pret").onclick = () => { kalMj = new Date(kalMj.getFullYear(), kalMj.getMonth() - 1, 1); crtaj(); };
+  const radnje = () => { radnjeOtv = !radnjeOtv; if (!radnjeOtv) $("radnje").scrollTop = 0; crtaj(); };
+  $("radnje-gumb").onclick = radnje;
+  $("radnje").addEventListener("click", () => { if (!radnjeOtv) radnje(); });
   $("kal-sljed").onclick = () => { kalMj = new Date(kalMj.getFullYear(), kalMj.getMonth() + 1, 1); crtaj(); };
   setInterval(() => { if (PIN) osvjezi(true); }, 30000);
   setInterval(() => { if (PODACI) crtaj(); }, 20000);           // "prije X min" ide dalje i bez novih podataka
