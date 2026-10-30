@@ -94,6 +94,16 @@ button { font: inherit; color: inherit; cursor: pointer }
 .dandet { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px }
 .dandet h3 { margin: 0 0 10px; font-size: 15px; display: flex; justify-content: space-between; align-items: center }
 .dandet h3 button { background: none; border: 0; color: var(--dim); font-size: 13px; padding: 4px 6px }
+/* komentar na dan (Mario 30.10.2026): samo njegov tekst uz dan, sprema se sam dok pise */
+.kom { margin-top: 12px }
+.kom label { display: block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); margin-bottom: 6px; font-weight: 600 }
+.kom textarea { width: 100%; min-height: 70px; resize: vertical; font: inherit; font-size: 16px; line-height: 1.4; padding: 10px 12px;
+  border-radius: 10px; border: 1px solid var(--line); background: var(--panel2); color: var(--ink) }
+.kom textarea:focus { outline: 2px solid var(--key); outline-offset: -1px }
+.kom .st { font-size: 12px; color: var(--dim); margin-top: 4px; min-height: 16px }
+.kom .st.lose { color: var(--warn) }
+.kom .st button { background: none; border: 0; color: var(--key); text-decoration: underline; padding: 0; font-size: 12px }
+.kal .d.ima::after { content: ""; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--ink) }
 .graf .dan { cursor: pointer }
 .kal .d { cursor: pointer }
 .kal .d.odabran { outline: 2px solid var(--ink); outline-offset: -2px }
@@ -233,20 +243,123 @@ button { font: inherit; color: inherit; cursor: pointer }
   const procitaj = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
 
   // ---- otkljucavanje: isto sto RPI5 zakljuca (openssl enc -aes-256-cbc -pbkdf2 -iter 100000 -md sha256) ----
-  async function otkljucaj(b64, pin) {
-    const raw = Uint8Array.from(atob(b64.trim()), c => c.charCodeAt(0));
-    if (new TextDecoder().decode(raw.slice(0, 8)) !== "Salted__") throw new Error("los zapis");
-    const salt = raw.slice(8, 16), ct = raw.slice(16);
+  async function kljucIz(pin, salt, sto) {
     const km = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveBits"]);
     const bits = new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" }, km, 384));
-    const key = await crypto.subtle.importKey("raw", bits.slice(0, 32), "AES-CBC", false, ["decrypt"]);
-    const pt = await crypto.subtle.decrypt({ name: "AES-CBC", iv: bits.slice(32, 48) }, key, ct);
+    return { key: await crypto.subtle.importKey("raw", bits.slice(0, 32), "AES-CBC", false, [sto]), iv: bits.slice(32, 48) };
+  }
+  async function otkljucaj(b64, pin) {
+    const raw = Uint8Array.from(atob(b64.replace(/\s+/g, "")), c => c.charCodeAt(0));
+    if (new TextDecoder().decode(raw.slice(0, 8)) !== "Salted__") throw new Error("los zapis");
+    const salt = raw.slice(8, 16), ct = raw.slice(16);
+    const { key, iv } = await kljucIz(pin, salt, "decrypt");
+    const pt = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, key, ct);
     return JSON.parse(new TextDecoder().decode(pt));
+  }
+  // komentari se zakljucaju istim PIN-om i na isti nacin (openssl ih moze otvoriti)
+  async function zakljucaj(obj, pin) {
+    const salt = crypto.getRandomValues(new Uint8Array(8));
+    const { key, iv } = await kljucIz(pin, salt, "encrypt");
+    const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-CBC", iv }, key, new TextEncoder().encode(JSON.stringify(obj))));
+    const raw = new Uint8Array(16 + ct.length);
+    raw.set(new TextEncoder().encode("Salted__")); raw.set(salt, 8); raw.set(ct, 16);
+    let s = ""; for (let i = 0; i < raw.length; i += 8192) s += String.fromCharCode(...raw.subarray(i, i + 8192));
+    return btoa(s);
   }
   async function dohvati() {
     const r = await fetch("podaci.enc?t=" + Date.now(), { cache: "no-store" });
     if (!r.ok) throw new Error("nema podataka (" + r.status + ")");
     return r.text();
+  }
+
+  // ---- KOMENTAR NA DAN (Mario 30.10.2026: "samo moj komentar na dan i da se to zapise automatski") ----
+  // komentari.enc u repozitoriju stranice: dan -> { t: tekst, v: kad je pisano }. Sprema se preko GitHuba
+  // kljucem koji se upise JEDNOM na mobitelu i ostaje samo na njemu (nije na stranici). RPI5 ga ne dira:
+  // uzme zadnje s gita i svoj "podaci" stavi povrh. Dva mobitela: za svaki dan vrijedi zadnje napisano.
+  const REPO = "https://api.github.com/repos/MarioRINNO/rinno-cartesian/contents/komentari.enc";
+  let KOM = {}, CEKA = {}, KST = {};          // komentari, dani koji jos nisu na gitu, poruka ispod polja
+  try { const z = JSON.parse(procitaj("robot-rad-kom") || "{}"); KOM = z.kom || {}; CEKA = z.ceka || {}; } catch (e) {}
+  const pamti = () => spremi("robot-rad-kom", JSON.stringify({ kom: KOM, ceka: CEKA }));
+  const spoji = (a, b) => { const o = { ...a }; for (const k in b) if (!o[k] || (b[k].v || "") > (o[k].v || "")) o[k] = b[k]; return o; };
+  async function dohvatiKom() {
+    const r = await fetch("komentari.enc?t=" + Date.now(), { cache: "no-store" });
+    if (r.status === 404) return {};
+    if (!r.ok) throw new Error("komentari " + r.status);
+    return otkljucaj(await r.text(), PIN);
+  }
+  let saljem = false;
+  async function posaljiKom() {
+    if (saljem || !Object.keys(CEKA).length) return;
+    const kljuc = procitaj("robot-rad-kljuc");
+    if (!kljuc) { Object.keys(CEKA).forEach(k => KST[k] = "bez-kljuca"); osvjeziSt(); return; }
+    saljem = true;
+    const sto = { ...CEKA };
+    try {
+      const H = { Authorization: "Bearer " + kljuc, Accept: "application/vnd.github+json" };
+      for (let pokusaj = 0; pokusaj < 3; pokusaj++) {
+        const g = await fetch(REPO + "?ref=main&t=" + Date.now(), { headers: H, cache: "no-store" });
+        if (g.status === 401 || g.status === 403) throw new Error("kljuc");
+        let sha, gore = {};
+        if (g.ok) { const j = await g.json(); sha = j.sha; gore = await otkljucaj(atob(j.content.replace(/\s+/g, "")), PIN); }
+        else if (g.status !== 404) throw new Error("git " + g.status);
+        const sve = spoji(gore, KOM);
+        const p = await fetch(REPO, { method: "PUT", headers: H, body: JSON.stringify({
+          message: "komentar " + Object.keys(sto).sort().join(", "), branch: "main", sha,
+          content: btoa(await zakljucaj(sve, PIN)) }) });
+        if (p.status === 409 || p.status === 422) continue;           // netko je upravo spremio - opet
+        if (p.status === 401 || p.status === 403) throw new Error("kljuc");
+        if (!p.ok) throw new Error("git " + p.status);
+        KOM = spoji(sve, KOM);                                       // ono sto je napisao dok se slalo ostaje
+        Object.keys(sto).forEach(k => { if (CEKA[k] === sto[k]) delete CEKA[k]; KST[k] = "ok"; });
+        pamti(); break;
+      }
+    } catch (e) {
+      const st = e.message === "kljuc" ? "los-kljuc" : "nije";
+      if (st === "los-kljuc") spremi("robot-rad-kljuc", null);
+      Object.keys(sto).forEach(k => KST[k] = st);
+    }
+    saljem = false; osvjeziSt();
+    if (Object.keys(CEKA).some(k => CEKA[k] !== sto[k])) posaljiKom();   // pisao je dok se slalo
+  }
+  function upisiKljuc() {
+    const k = (prompt("Upiši ključ za spremanje komentara (samo jednom na ovom mobitelu):") || "").trim();
+    if (!k) return;
+    spremi("robot-rad-kljuc", k); posaljiKom();
+  }
+  function stTekst(key) {
+    const s = KST[key], x = KOM[key];
+    if (CEKA[key] && s !== "bez-kljuca" && s !== "los-kljuc" && s !== "nije") return ["spremam…", ""];
+    if (s === "bez-kljuca") return ["Nije spremljeno – treba ključ. ", "lose", "upiši ključ"];
+    if (s === "los-kljuc") return ["Nije spremljeno – ključ ne valja. ", "lose", "upiši ključ"];
+    if (s === "nije") return ["Nije spremljeno (nema interneta?) – pokušat ću opet sam.", "lose"];
+    if (x && x.v) { const d = new Date(x.v); return ["spremljeno " + d.getDate() + "." + (d.getMonth() + 1) + ". " + hm(d) + " ✓", ""]; }
+    return ["", ""];
+  }
+  function osvjeziSt() {
+    document.querySelectorAll(".kom .st").forEach(el => {
+      const [t, cls, gumb] = stTekst(el.dataset.dan);
+      el.className = "st" + (cls ? " " + cls : ""); el.textContent = t;
+      if (gumb) { const b = document.createElement("button"); b.type = "button"; b.textContent = gumb; b.onclick = upisiKljuc; el.appendChild(b); }
+    });
+  }
+  const odgoda = {};
+  function komPolje(key) {
+    const w = document.createElement("div"); w.className = "kom";
+    const lb = document.createElement("label"); lb.textContent = "Moj komentar";
+    const ta = document.createElement("textarea"); ta.className = "komtxt";
+    ta.placeholder = "npr. stajao 9–10 h, mijenjao Y prekidač";
+    ta.value = (KOM[key] && KOM[key].t) || "";
+    const st = document.createElement("div"); st.className = "st"; st.dataset.dan = key;
+    const upisi = () => {
+      clearTimeout(odgoda[key]);
+      const t = ta.value.trim();
+      if (t === ((KOM[key] && KOM[key].t) || "")) return;
+      KOM[key] = { t, v: new Date().toISOString() }; CEKA[key] = KOM[key].v; delete KST[key];
+      pamti(); osvjeziSt(); posaljiKom();
+    };
+    ta.addEventListener("input", () => { clearTimeout(odgoda[key]); odgoda[key] = setTimeout(upisi, 1500); });
+    ta.addEventListener("blur", () => { upisi(); setTimeout(crtaj, 0); });
+    w.append(lb, ta, st); return w;
   }
 
   // ---- imena poslova: robot pise bez kvacica (PRSUT, BUDJOLA), izbornik "gr", program "g" ----
@@ -333,10 +446,13 @@ button { font: inherit; color: inherit; cursor: pointer }
     const x = document.createElement("button"); x.type = "button"; x.textContent = "zatvori ✕"; x.onclick = zatvori; h.appendChild(x);
     el.appendChild(h);
     const l = danMesa(key);
-    if (!l.length) { const p = document.createElement("div"); p.className = "prazno-txt"; p.textContent = "Taj dan robot nije radio."; el.appendChild(p); return; }
-    const m = document.createElement("div"); m.className = "mesa"; danRedovi(m, l); el.appendChild(m);
-    const z = zbrojMesa(l), u = document.createElement("div"); u.className = "ukupno";
-    u.innerHTML = ukupnoTxt(z) + " · " + sati(z.sek) + " h rada · prosjek " + naSat(z.kg, z.sek) + " kg/h"; el.appendChild(u);
+    if (!l.length) { const p = document.createElement("div"); p.className = "prazno-txt"; p.textContent = "Taj dan robot nije radio."; el.appendChild(p); }
+    else {
+      const m = document.createElement("div"); m.className = "mesa"; danRedovi(m, l); el.appendChild(m);
+      const z = zbrojMesa(l), u = document.createElement("div"); u.className = "ukupno";
+      u.innerHTML = ukupnoTxt(z) + " · " + sati(z.sek) + " h rada · prosjek " + naSat(z.kg, z.sek) + " kg/h"; el.appendChild(u);
+    }
+    el.appendChild(komPolje(key));
   }
   function legenda(el, imena) {
     el.textContent = "";
@@ -346,6 +462,7 @@ button { font: inherit; color: inherit; cursor: pointer }
   let odabran14 = null, odabranKal = null, radnjeOtv = false;
   function crtaj() {
     const p = PODACI; if (!p) return;
+    if (document.activeElement && document.activeElement.classList.contains("komtxt")) return;   // ne diraj dok pise
     const sad = new Date(), danas = dan(sad), sve = smjene(p);
     $("azurirano").textContent = p.azurirano ? "podaci " + prije(sad - new Date(p.azurirano)) : "";
 
@@ -376,7 +493,7 @@ button { font: inherit; color: inherit; cursor: pointer }
     } else {
       sv.className = "svjetlo stoji";
       $("stanje-veliko").textContent = "Upaljen, stoji";
-      $("stanje-malo").textContent = lijepo(st.proizvod) + " · čeka KRENI" + (sve[0] ? " · zadnja smjena završila " + prije(sad - sve[0].kraj) : "") + kam;
+      $("stanje-malo").textContent = lijepo(st.proizvod) + " · čeka START" + (sve[0] ? " · zadnja smjena završila " + prije(sad - sve[0].kraj) : "") + kam;
     }
     SVE = sve; ZIVO = st && st.radi && staro < 4 * 60000 ? st : null;
 
@@ -440,7 +557,7 @@ button { font: inherit; color: inherit; cursor: pointer }
     const mxd = Math.max(1, ...mjDani.map(x => zbrojMesa(x.l).kg));
     for (let i = 0; i < prvi; i++) { const e = document.createElement("div"); e.className = "d prazno"; k.appendChild(e); }
     mjDani.forEach(({ key, l }, i) => {
-      const e = document.createElement("div"); e.className = "d" + (key === danas ? " danas" : "") + (key === odabranKal ? " odabran" : "");
+      const e = document.createElement("div"); e.className = "d" + (key === danas ? " danas" : "") + (key === odabranKal ? " odabran" : "") + (KOM[key] && KOM[key].t ? " ima" : "");
       const z = zbrojMesa(l);
       if (l.length) { const a = .3 + .7 * z.kg / mxd; e.style.background = rgba(boja(l[0].ime), a); e.style.color = a > .6 ? "#0d1220" : "#eef3fb"; }
       e.textContent = i + 1;
@@ -449,6 +566,7 @@ button { font: inherit; color: inherit; cursor: pointer }
     });
     legenda($("kal-leg"), mjDani.flatMap(x => x.l.map(m => m.ime)));
     danDetalj($("kal-dan"), odabranKal, () => { odabranKal = null; crtaj(); });
+    osvjeziSt();
 
     // mjesec (onaj iz kalendara): ukupno + po mesu s LOT-ovima
     $("m-naslov").textContent = "Ukupno · " + mjIme;
@@ -486,7 +604,9 @@ button { font: inherit; color: inherit; cursor: pointer }
   async function osvjezi(tiho) {
     try {
       PODACI = await otkljucaj(await dohvati(), PIN);
-      crtaj();
+      try { KOM = spoji(await dohvatiKom(), KOM); pamti(); } catch (e) {}   // komentari ne smiju zakociti stranicu
+      crtaj(); osvjeziSt();
+      posaljiKom();                                                       // ono sto nije stiglo na git
       return true;
     } catch (e) {
       if (!tiho) throw e;
